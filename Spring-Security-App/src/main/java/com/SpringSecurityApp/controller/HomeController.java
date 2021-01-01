@@ -1,4 +1,4 @@
-package com.SpringSecurityApp.controller.user;
+package com.SpringSecurityApp.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,14 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class HomeController {
 	
 	@GetMapping("/home")
-	public String home() {
+	public String getHome() {
 		return "index";
 	}
-	
-	@GetMapping("/home2")
-	public String home2() {
-		return "index";
-	}
-
-
 }
