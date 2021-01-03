@@ -7,6 +7,11 @@ import javax.validation.constraints.NotEmpty;
 
 public class UserData implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1707314627545523673L;
+
 	@NotEmpty(message = "First name can not be empty")
 	private String firstName;
 
