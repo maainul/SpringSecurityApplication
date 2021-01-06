@@ -22,8 +22,9 @@ public class CustomUserDetailService implements UserDetailsService {
 		if (customer == null) {
 			throw new UsernameNotFoundException(email);
 		}
-		UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).authorities("USER")
-				.build();
+		boolean enabled = !customer.isAccountVerified();
+		UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).disabled(enabled)
+				.authorities("USER").build();
 		return user;
 	}
 }

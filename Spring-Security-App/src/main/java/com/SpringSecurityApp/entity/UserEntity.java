@@ -1,11 +1,16 @@
 package com.SpringSecurityApp.entity;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.SpringSecurityApp.security.jpa.SecureToken;
 
 @Entity
 @Table(name = "user")
@@ -18,6 +23,10 @@ public class UserEntity {
 	@Column(unique = true)
 	private String email;
 	private String password;
+	private boolean accountVerified;
+
+	@OneToMany(mappedBy = "user")
+	private Set<SecureToken> tokens;
 
 	/**
 	 * @return the id
@@ -80,6 +89,34 @@ public class UserEntity {
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	/**
+	 * @return the accountVarified
+	 */
+	public boolean isAccountVerified() {
+		return accountVerified;
+	}
+
+	/**
+	 * @param accountVarified the accountVarified to set
+	 */
+	public void setAccountVerified(boolean accountVerified) {
+		this.accountVerified = accountVerified;
+	}
+
+	/**
+	 * @return the tokens
+	 */
+	public Set<SecureToken> getTokens() {
+		return tokens;
+	}
+
+	/**
+	 * @param tokens the tokens to set
+	 */
+	public void setTokens(Set<SecureToken> tokens) {
+		this.tokens = tokens;
 	}
 
 }
