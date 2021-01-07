@@ -20,9 +20,22 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/login", "/register").permitAll().antMatchers("/account/**")
-				.hasAuthority("USER").and().formLogin().loginPage("/login").defaultSuccessUrl("/account/home")
-				.failureUrl("/login?error=true");
+		http.authorizeRequests()
+		.antMatchers("/login", "/register")
+		.permitAll()
+		.antMatchers("/account/**")
+		.hasAuthority("USER")
+		// login configuration
+		.and()
+		.formLogin()
+		.loginPage("/login")
+		.defaultSuccessUrl("/account/home")
+		.failureUrl("/login?error=true")
+		// logout configuration
+		.and()
+		.logout().deleteCookies("dummyCookie")
+		.logoutSuccessUrl("/login");
+				
 	}
 
 	@Bean

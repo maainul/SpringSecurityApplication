@@ -20,24 +20,24 @@
 				<span class="hidden-xs" sec:authentication="name"></span>
 		</a>
 			<ul class="dropdown-menu">
-				<!-- User image -->
 				<li class="user-header"><img th:src="@{/dist/img/avatar5.png}"
 					class="img-circle" alt="User Image">
+
 					<p>
-						Spring Security Course <small>Java Development Journal</small>
+						Spring Security App <small>Java Development Application</small>
 					</p></li>
-				<!--                    <div sec:authorize="isAuthenticated()">  </div>-->
+
+				<div sec:authorize="isAuthenticated()"></div>
 				<li class="user-footer">
 					<div class="pull-right">
 						<a href="javascript: document.logoutForm.submit()"
 							class="btn btn-default btn-flat">Sign out</a>
+						<form name="logoutForm" th:action="@{/logout}" method="post"
+							th:hidden="true">
+							<input hidden type="submit" value="Sign Out" />
+						</form>
 					</div>
+					</li>
 				</li>
-			</ul></li>
-		<form name="logoutForm" th:action="@{/logout}" method="post"
-			th:hidden="true">
-			<input hidden type="submit" value="Sign Out" />
-		</form>
-	</ul>
-
+			</ul>
 </nav>
