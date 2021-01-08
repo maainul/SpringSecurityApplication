@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import javax.mail.MessagingException;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.SpringSecurityApp.context.AccountVerificationEmailContext;
 import com.SpringSecurityApp.core.exception.InvalidTokenException;
+import com.SpringSecurityApp.core.exception.UnkownIdentifierException;
 import com.SpringSecurityApp.core.exception.UserAlreadyExistException;
 import com.SpringSecurityApp.data.user.UserData;
 import com.SpringSecurityApp.entity.UserEntity;
@@ -101,6 +103,16 @@ public class DefaultUserService implements UserService {
 		// we don’t need invalid password now
 		secureTokenService.removeToken(secureToken);
 		return true;
+	}
+
+	@Override
+	public UserEntity getUserById(String id) throws UnkownIdentifierException {
+		UserEntity user = userRepository.findByEmail(id);
+		if (user == null || BooleanUtils.isFalse(user.isAccountVerified())) {
+			// we will ignore in case account is not verified or account does not exists
+			throw new UnkownIdentifierException("unable to find account or account is not active");
+		}
+		return user;
 	}
 
 }

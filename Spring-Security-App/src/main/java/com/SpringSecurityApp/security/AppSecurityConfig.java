@@ -11,10 +11,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+
 
 @EnableWebSecurity
 public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -27,17 +31,47 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/login", "/register").permitAll().antMatchers("/account/**")
-				.hasAuthority("USER")
-				// rememberMe configuration
-				.and().rememberMe().tokenRepository(persistentTokenRepository())
+		/*
+		 * http.authorizeRequests().antMatchers("/login",
+		 * "/register").permitAll().antMatchers("/account/**") .hasAuthority("USER") //
+		 * rememberMe configuration
+		 * .and().rememberMe().tokenRepository(persistentTokenRepository())
+		 * 
+		 * // login configuration
+		 * .and().formLogin().loginPage("/login").defaultSuccessUrl("/account/home")
+		 * .failureUrl("/login?error=true")
+		 * 
+		 * // logout configuration
+		 * .and().logout().deleteCookies("dummyCookie").logoutSuccessUrl("/login");
+		 */
+        http.authorizeRequests()
+        .antMatchers("/login", "/register","/home")
+        .permitAll()
+        .antMatchers("/account/**").hasAuthority("USER")
+        .and()
 
-				// login configuration
-				.and().formLogin().loginPage("/login").defaultSuccessUrl("/account/home")
-				.failureUrl("/login?error=true")
+        //Setting HTTPS for my account
+       // .requiresChannel().anyRequest().requiresSecure()
+       // .and()
 
-				// logout configuration
-				.and().logout().deleteCookies("dummyCookie").logoutSuccessUrl("/login");
+        // Remember me configurations
+        .rememberMe().tokenRepository(persistentTokenRepository())
+        .rememberMeCookieDomain("domain")
+        .rememberMeCookieName("custom-remember-me-cookie")
+        .userDetailsService(this.userDetailsService)
+        .tokenValiditySeconds(2000)
+        .useSecureCookie(true)
+
+        //Login configurations
+        .and()
+        .formLogin().defaultSuccessUrl("/account/home")
+        .loginPage("/login")
+        .failureUrl("/login?error=true")
+       // .successHandler(successHandler())
+        //logout configurations
+        .and()
+        .logout().deleteCookies("dummyCookie")
+        .logoutSuccessUrl("/login");
 
 	}
 
@@ -65,7 +99,20 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 		authProvider.setPasswordEncoder(passwordEncoder());
 		return authProvider;
 	}
+	
+//	 @Bean
+//	    public CustomSuccessHandler successHandler(){
+//	        return new CustomSuccessHandler();
+//	    }
 
+	
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        SessionRegistry sessionRegistry = new SessionRegistryImpl();
+        return sessionRegistry;
+    }
+
+    
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) {
 		auth.authenticationProvider(authProvider());
