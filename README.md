@@ -19,4 +19,786 @@ http://localhost:8080/register
 # Index Page:
 http://localhost:8080/
 ![Screenshot from 2021-03-30 23-34-25](https://user-images.githubusercontent.com/37740006/113031826-f8d65600-91b0-11eb-88de-e43421185953.png)
+# ---------------------------------------------------------------------------
+# 1. STEP -1
+# ---------------------------------------------------------------------------
+
+![springSecurity1](https://user-images.githubusercontent.com/37740006/114138178-1339cd80-992f-11eb-9cdb-e7c01ea352f7.png)
+
+# 1. Create Project from SpringInitializer
+# 2. Add Dependencies
+    1. springboot devtools
+    2. Spring boot security
+```xml
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-config</artifactId>
+    <version>4.1.2.RELEASE</version>
+</dependency>
+```
+# 3. Create Controller,index.html
+
+# HomeController:
+```java
+package com.SpringSecurityApp.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/account")
+public class HomeController {
+	
+	@GetMapping("/home")
+	public String getHome() {
+		return "index";
+	}
+
+}
+```
+# Index.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="core/head :: head">  <meta charset="utf-8">
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+  <!--<header th:replace="core/header :: header">
+  </header> -->
+  <nav th:replace="core/userProfile :: nav"></nav>
+  <!-- /.navbar -->
+
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="index.html" class="brand-link">
+      <span class="brand-text font-weight-light">Spring Security App</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="info">
+          <a href="https://github.com/maainul/SpringSecurityApplication" class="d-block">Github Link</a>
+        </div>
+      </div>
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item has-treeview menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Dashboard v1</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#" class="nav-link">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>Dashboard v2</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a href="pages/widgets.html" class="nav-link">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Customers
+              </p>
+            </a>
+          </li>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-copy"></i>
+              <p>
+               Orders
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+          </li>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-tree"></i>
+              <p>
+                Layout
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+          </li>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-edit"></i>
+              <p>
+                My Account
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+          </li>
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-table"></i>
+              <p>
+                Payments
+                <i class="fas fa-angle-left right"></i>
+              </p>
+            </a>
+          </li>
+         </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Weclome</h1>
+          </div>
+          <!-- /.col -->
+         </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Your Active Sessions</h3>
+
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body table-responsive p-0">
+            <table class="table table-hover text-nowrap">
+              <thead>
+              <tr>
+                <th>Session ID</th>
+                <th>Last Used</th>
+                <th>Logout</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="activesession : ${currentSession}">
+                <td th:text="${activesession.sessionId}"></td>
+                <td th:text="${#calendars.format(activesession.lastRequest, 'yyyy-MM-dd HH:mm')}"></td>
+                <td>11-7-2014</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </div>
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+  </div>
+          <!-- /.col-md-6 -->
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+
+  <!-- Main Footer -->
+  </div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+
+<!-- jQuery -->
+<script th:src="@{/plugins/jquery/jquery.min.js}"></script>
+<!-- Bootstrap -->
+<script th:src="@{/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<!-- AdminLTE -->
+<script th:src="@{/dist/js/adminlte.min.js}"></script>
+
+<script th:src="@{/dist/js/pages/dashboard3.js}"></script>
+</body>
+</html>
+
+```
+# Run The Project 
+### http://localhost:8080/
+
+![ s2](https://user-images.githubusercontent.com/37740006/114138259-32385f80-992f-11eb-80fb-1080c22875db.png)
+
+# ---------------------------------------------------------------------------
+# 1. STEP -2
+# ---------------------------------------------------------------------------
+
+# Create packages
+
+1. config
+2. security.core.userdetail
+3. system.exception
+4. user
+5. web
+
+# This is WebSecurity Basic Code
+This will allow only you give the user name and password.
+After giving user name and password you are able to perform any operation
+
+```java
+    @Override
+	protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+            .anyRequest().authenticated()
+            .formLogin().and()
+            .httpBasic();
+```
+.antMatchers() - gives you new Dimension to add new expression for security configuration
+
+.antMatchers("/login","/register") - I want login and register Outside of the authentication process
+
+.antMatchers("/login","/register").permitAll()
+
+.antMatchers("/account/**").hasAuthority("USER") - Only Authenticated Person can access these url.USER is Role
+
+.antMatchers("/account/**").hasAnyAuthority("USER","SPECIALUSER","CUSTOMER") - Only Authenticated Person can access these url.USER,Customer is Role
+
+```java
+    @Override
+	protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+            .antMatchers("/login","/register").permitAll()
+            .anyRequest().authenticated()
+            .antMatchers("/account/**").hasAuthority("USER")
+            .formLogin().and()
+            .httpBasic();
+```
+
+```java
+package com.SpringSecurityApp.security;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+
+
+@EnableWebSecurity
+public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Resource
+	UserDetailsService userDetailsService;
+
+	@Autowired
+	private DataSource dataSource;
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/login", "/register").permitAll()
+                .anyRequest().authenticated()
+                .antMatchers("/account/**").hasAuthority("USER")
+                .formLogin().and()
+                .httpBasic();
+    }
+}
+```
+# Create RegistrationController
+```java
+package com.SpringSecurityApp.controller.user;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/register")
+public class RegistrationController {
+
+    @GetMapping
+    public String register(final Model model) {
+        model.addAttribute("userData", new UserData());
+        return "account/register";
+    }
+}
+```
+# create Account/register.html in template folder
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="core/head :: head">
+<meta charset="utf-8">
+</head>
+<body class="hold-transition register-page">
+	<div class="register-box">
+		<div class="register-logo">
+			<a href="#">Welcome to Spring Security App</a>
+		</div>
+		<div class="card">
+			<div class="card-body register-card-body">
+				<div class="alert alert-success" role="alert"
+					th:if="${registrationMsg != null}">
+					<p th:text="${registrationMsg}"></p>
+				</div>
+				<p class="login-box-msg">Register a new account</p>
+				<form action="#" th:action="@{/register}" th:object="${userData}"
+					method="post">
+					<div class="alert alert-danger" th:if="${#fields.hasErrors('*')}">
+						<p th:each="err : ${#fields.errors('*')}" th:text="${err}"></p>
+					</div>
+					<div class="input-group mb-3">
+						<input type="text" class="form-control" th:field="*{firstName}"
+							placeholder="First Name" th:errorclass="is-invalid">
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-user"></span>
+							</div>
+						</div>
+					</div>
+					<div class="input-group mb-3">
+						<input type="text" class="form-control" th:field="*{lastName}"
+							placeholder="Last Name" th:errorclass="is-invalid">
+
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-user"></span>
+							</div>
+						</div>
+					</div>
+					<div class="input-group mb-3">
+						<input type="email" class="form-control" th:field="*{email}"
+							placeholder="Email" th:errorclass="is-invalid">
+
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-envelope"></span>
+							</div>
+						</div>
+					</div>
+					<div class="input-group mb-3">
+						<input type="password" class="form-control" th:field="*{password}"
+							placeholder="Password" th:errorclass="is-invalid">
+
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-lock"></span>
+							</div>
+						</div>
+					</div>
+					<div class="input-group mb-3">
+						<input type="password" class="form-control"
+							placeholder="Retype password">
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-lock"></span>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-8">
+							<div class="icheck-primary">
+								<input type="checkbox" id="agreeTerms" name="terms"
+									value="agree"> <label for="agreeTerms"> I agree
+									to the <a href="#">terms</a>
+								</label>
+							</div>
+						</div>
+						<!-- /.col -->
+						<div class="col-4">
+							<button type="submit" class="btn btn-primary btn-block">Register</button>
+						</div>
+						<!-- /.col -->
+					</div>
+				</form>
+
+				<a href="login" class="text-center">I already have an Account</a>
+			</div>
+			<!-- /.form-box -->
+		</div>
+		<!-- /.card -->
+	</div>
+	<!-- /.register-box -->
+
+	<!-- jQuery -->
+	<script th:src="@{/plugins/jquery/jquery.min.js}"></script>
+	<!-- Bootstrap 4 -->
+	<script th:src="@{/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
+	<!-- AdminLTE App -->
+	<script th:src="@{/dist/js/adminlte.min.js}"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$("#locale").change(function() {
+				var selectedOption = $('#locale').val();
+				if (selectedOption != '') {
+					window.location.replace('?lang=' + selectedOption);
+				}
+			});
+		});
+	</script>
+</body>
+</html>
+```
+
+# Create core.head.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:fragment="head">
+    <meta charset="utf-8">
+    <!-- Test it -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Java Dev Journal | Registration Page</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"  th:href="@{/plugins/fontawesome-free/css/all.min.css}">
+    <!-- Ionicons
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">-->
+    <!-- icheck bootstrap -->
+    <link rel="stylesheet" th:href="@{/plugins/icheck-bootstrap/icheck-bootstrap.min.css}">
+    <!-- Theme style -->
+    <link rel="stylesheet" th:href="@{/dist/css/adminlte.min.css}">
+    <!-- Google Font: Source Sans Pro -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+
+</head>
+```
+
+# Create core.header.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<header th:fragment="header" class="main-header">
+	<!-- Logo -->
+	<a href="index2.html" class="logo"> <!-- mini logo for sidebar mini 50x50 pixels -->
+		<span class="logo-mini"><b>A</b>LT</span> <!-- logo for regular state and mobile devices -->
+		<span class="logo-lg"><b>Admin</b>LTE</span>
+	</a>
+
+	<!-- Header Navbar: style can be found in header.less -->
+	<nav class="navbar navbar-static-top">
+		<!-- Sidebar toggle button-->
+		<a href="#" class="sidebar-toggle" data-toggle="push-menu"
+			role="button"> <span class="sr-only">Toggle navigation</span>
+		</a>
+		<!-- Navbar Right Menu -->
+		<div class="navbar-custom-menu">
+			<ul class="nav navbar-nav">
+				<!-- Messages: style can be found in dropdown.less-->
+				<li class="dropdown messages-menu"><a href="#"
+					class="dropdown-toggle" data-toggle="dropdown"> <i
+						class="fa fa-envelope-o"></i> <span class="label label-success">4</span>
+				</a>
+					<ul class="dropdown-menu">
+						<li class="header">You have 4 messages</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu">
+								<li>
+									<!-- start message --> <a href="#">
+										<div class="pull-left">
+											<img src="dist/img/user2-160x160.jpg" class="img-circle"
+												alt="User Image">
+										</div>
+										<h4>
+											Support Team <small><i class="fa fa-clock-o"></i> 5
+												mins</small>
+										</h4>
+										<p>Why not buy a new awesome theme?</p>
+								</a>
+								</li>
+								<!-- end message -->
+								<li><a href="#">
+										<div class="pull-left">
+											<img src="dist/img/user3-128x128.jpg" class="img-circle"
+												alt="User Image">
+										</div>
+										<h4>
+											AdminLTE Design Team <small><i class="fa fa-clock-o"></i>
+												2 hours</small>
+										</h4>
+										<p>Why not buy a new awesome theme?</p>
+								</a></li>
+								<li><a href="#">
+										<div class="pull-left">
+											<img src="dist/img/user4-128x128.jpg" class="img-circle"
+												alt="User Image">
+										</div>
+										<h4>
+											Developers <small><i class="fa fa-clock-o"></i> Today</small>
+										</h4>
+										<p>Why not buy a new awesome theme?</p>
+								</a></li>
+								<li><a href="#">
+										<div class="pull-left">
+											<img src="dist/img/user3-128x128.jpg" class="img-circle"
+												alt="User Image">
+										</div>
+										<h4>
+											Sales Department <small><i class="fa fa-clock-o"></i>
+												Yesterday</small>
+										</h4>
+										<p>Why not buy a new awesome theme?</p>
+								</a></li>
+								<li><a href="#">
+										<div class="pull-left">
+											<img src="dist/img/user4-128x128.jpg" class="img-circle"
+												alt="User Image">
+										</div>
+										<h4>
+											Reviewers <small><i class="fa fa-clock-o"></i> 2 days</small>
+										</h4>
+										<p>Why not buy a new awesome theme?</p>
+								</a></li>
+							</ul>
+						</li>
+						<li class="footer"><a href="#">See All Messages</a></li>
+					</ul></li>
+				<!-- Notifications: style can be found in dropdown.less -->
+				<li class="dropdown notifications-menu"><a href="#"
+					class="dropdown-toggle" data-toggle="dropdown"> <i
+						class="fa fa-bell-o"></i> <span class="label label-warning">10</span>
+				</a>
+					<ul class="dropdown-menu">
+						<li class="header">You have 10 notifications</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu">
+								<li><a href="#"> <i class="fa fa-users text-aqua"></i>
+										5 new members joined today
+								</a></li>
+								<li><a href="#"> <i class="fa fa-warning text-yellow"></i>
+										Very long description here that may not fit into the page and
+										may cause design problems
+								</a></li>
+								<li><a href="#"> <i class="fa fa-users text-red"></i> 5
+										new members joined
+								</a></li>
+								<li><a href="#"> <i
+										class="fa fa-shopping-cart text-green"></i> 25 sales made
+								</a></li>
+								<li><a href="#"> <i class="fa fa-user text-red"></i>
+										You changed your username
+								</a></li>
+							</ul>
+						</li>
+						<li class="footer"><a href="#">View all</a></li>
+					</ul></li>
+				<!-- Tasks: style can be found in dropdown.less -->
+				<li class="dropdown tasks-menu"><a href="#"
+					class="dropdown-toggle" data-toggle="dropdown"> <i
+						class="fa fa-flag-o"></i> <span class="label label-danger">9</span>
+				</a>
+					<ul class="dropdown-menu">
+						<li class="header">You have 9 tasks</li>
+						<li>
+							<!-- inner menu: contains the actual data -->
+							<ul class="menu">
+								<li>
+									<!-- Task item --> <a href="#">
+										<h3>
+											Design some buttons <small class="pull-right">20%</small>
+										</h3>
+										<div class="progress xs">
+											<div class="progress-bar progress-bar-aqua"
+												style="width: 20%" role="progressbar" aria-valuenow="20"
+												aria-valuemin="0" aria-valuemax="100">
+												<span class="sr-only">20% Complete</span>
+											</div>
+										</div>
+								</a>
+								</li>
+								<!-- end task item -->
+								<li>
+									<!-- Task item --> <a href="#">
+										<h3>
+											Create a nice theme <small class="pull-right">40%</small>
+										</h3>
+										<div class="progress xs">
+											<div class="progress-bar progress-bar-green"
+												style="width: 40%" role="progressbar" aria-valuenow="20"
+												aria-valuemin="0" aria-valuemax="100">
+												<span class="sr-only">40% Complete</span>
+											</div>
+										</div>
+								</a>
+								</li>
+								<!-- end task item -->
+								<li>
+									<!-- Task item --> <a href="#">
+										<h3>
+											Some task I need to do <small class="pull-right">60%</small>
+										</h3>
+										<div class="progress xs">
+											<div class="progress-bar progress-bar-red" style="width: 60%"
+												role="progressbar" aria-valuenow="20" aria-valuemin="0"
+												aria-valuemax="100">
+												<span class="sr-only">60% Complete</span>
+											</div>
+										</div>
+								</a>
+								</li>
+								<!-- end task item -->
+								<li>
+									<!-- Task item --> <a href="#">
+										<h3>
+											Make beautiful transitions <small class="pull-right">80%</small>
+										</h3>
+										<div class="progress xs">
+											<div class="progress-bar progress-bar-yellow"
+												style="width: 80%" role="progressbar" aria-valuenow="20"
+												aria-valuemin="0" aria-valuemax="100">
+												<span class="sr-only">80% Complete</span>
+											</div>
+										</div>
+								</a>
+								</li>
+								<!-- end task item -->
+							</ul>
+						</li>
+						<li class="footer"><a href="#">View all tasks</a></li>
+					</ul></li>
+				<!-- User Account: style can be found in dropdown.less -->
+				<li class="dropdown user user-menu"><a href="#"
+					class="dropdown-toggle" data-toggle="dropdown"> <img
+						src="dist/img/user2-160x160.jpg" class="user-image"
+						alt="User Image"> <span class="hidden-xs">Alexander
+							Pierce</span>
+				</a>
+					<ul class="dropdown-menu">
+						<!-- User image -->
+						<li class="user-header"><img src="dist/img/user2-160x160.jpg"
+							class="img-circle" alt="User Image">
+
+							<p>
+								Alexander Pierce - Web Developer <small>Member since
+									Nov. 2012</small>
+							</p></li>
+						<!-- Menu Body -->
+						<li class="user-body">
+							<div class="row">
+								<div class="col-xs-4 text-center">
+									<a href="#">Followers</a>
+								</div>
+								<div class="col-xs-4 text-center">
+									<a href="#">Sales</a>
+								</div>
+								<div class="col-xs-4 text-center">
+									<a href="#">Friends</a>
+								</div>
+							</div> <!-- /.row -->
+						</li>
+						<!-- Menu Footer-->
+						<li class="user-footer">
+							<div class="pull-left">
+								<a href="#" class="btn btn-default btn-flat">Profile</a>
+							</div>
+							<div class="pull-right">
+								<a href="#" class="btn btn-default btn-flat">Sign out</a>
+							</div>
+						</li>
+					</ul></li>
+				<!-- Control Sidebar Toggle Button -->
+				<li><a href="#" data-toggle="control-sidebar"><i
+						class="fa fa-gears"></i></a></li>
+			</ul>
+		</div>
+
+	</nav>
+</header>
+```
+# Create core.userProfile.html
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+	<!-- Left navbar links -->
+	<ul class="navbar-nav">
+		<li class="nav-item"><a class="nav-link" data-widget="pushmenu"
+			href="#" role="button"><i class="fas fa-bars"></i></a></li>
+		<li class="nav-item d-none d-sm-inline-block"><a
+			href="index.html" class="nav-link">Home</a></li>
+		<li class="nav-item d-none d-sm-inline-block"><a href="#"
+			class="nav-link">Contact</a></li>
+
+	</ul>
+
+	<ul class="navbar-nav ml-auto">
+		<li class="dropdown user user-menu"
+			sec:authorize="hasAuthority('USER')"><a href="#"
+			class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+				<span class="hidden-xs" sec:authentication="name"></span>
+		</a>
+			<ul class="dropdown-menu">
+				<li class="user-header"><img th:src="@{/dist/img/avatar5.png}"
+					class="img-circle" alt="User Image">
+
+					<p>
+						Spring Security App <small>Java Development Application</small>
+					</p></li>
+
+				<div sec:authorize="isAuthenticated()"></div>
+				<li class="user-footer">
+					<div class="pull-right">
+						<a href="javascript: document.logoutForm.submit()"
+							class="btn btn-default btn-flat">Sign out</a>
+						<form name="logoutForm" th:action="@{/logout}" method="post"
+							th:hidden="true">
+							<input hidden type="submit" value="Sign Out" />
+						</form>
+					</div>
+					</li>
+				</li>
+			</ul>
+</nav>
+```
+## http://localhost:8080/register
+
+![register](https://user-images.githubusercontent.com/37740006/114150364-ca3d4580-993d-11eb-8c76-e0d88c044121.png)
+
+Any other Url is not available only register and login available
+
+![ s2](https://user-images.githubusercontent.com/37740006/114138259-32385f80-992f-11eb-80fb-1080c22875db.png)
+
 
