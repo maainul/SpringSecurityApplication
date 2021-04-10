@@ -1643,8 +1643,8 @@ public class CustomUserDetailService implements UserDetailsService {
         if (customer == null) {
             throw new UsernameNotFoundException(email);
         }
-        boolean enabled = !customer.isAccountVerified();
-        UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).disabled(enabled)
+       
+        UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword())
                 .authorities("USER").build();
         return user;
     }
@@ -1746,3 +1746,580 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 # -----------------------------------------------------------------
 # STEP -5 ( EMAIL VERIFICATION REGISTRATION)
 # -----------------------------------------------------------------
+# Create Field is in UserEntity
+```java
+private boolean accountVerified;
+```
+# Complete code for UserEntity
+```java
+package com.SpringSecurityApp.entity;
+
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.SpringSecurityApp.security.jpa.SecureToken;
+
+@Entity
+@Table(name = "user")
+public class UserEntity {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String firstName;
+	private String lastName;
+	@Column(unique = true)
+	private String email;
+	private String password;
+	private boolean accountVerified;
+	
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @return the firstName
+	 */
+	public String getFirstName() {
+		return firstName;
+	}
+
+	/**
+	 * @param firstName the firstName to set
+	 */
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	/**
+	 * @return the lastName
+	 */
+	public String getLastName() {
+		return lastName;
+	}
+
+	/**
+	 * @param lastName the lastName to set
+	 */
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
+	}
+
+	/**
+	 * @param email the email to set
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * @return the accountVarified
+	 */
+	public boolean isAccountVerified() {
+		return accountVerified;
+	}
+
+	/**
+	 * @param accountVarified the accountVarified to set
+	 */
+	public void setAccountVerified(boolean accountVerified) {
+		this.accountVerified = accountVerified;
+	}
+}
+
+```
+# Update CustomUserDetailService
+```java
+boolean enabled = !customer.isAccountVerified();
+		UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).disabled(enabled)
+				.authorities("USER").build();
+```
+# Complete Code for CustomerDetailService
+
+```java
+package com.SpringSecurityApp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import com.SpringSecurityApp.entity.UserEntity;
+import com.SpringSecurityApp.repository.UserRepository;
+
+@Service("userDetailsService")
+public class CustomUserDetailService implements UserDetailsService {
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Override
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		final UserEntity customer = userRepository.findByEmail(email);
+		if (customer == null) {
+			throw new UsernameNotFoundException(email);
+		}
+		boolean enabled = !customer.isAccountVerified();
+		UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).disabled(enabled)
+				.authorities("USER").build();
+		return user;
+	}
+}
+```
+# Create SecureToken Class for Sending Email to the User
+# Create package security/jpa/SecureToken.java
+```java
+package com.SpringSecurityApp.security.jpa;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.hibernate.annotations.CreationTimestamp;
+import com.SpringSecurityApp.entity.UserEntity;
+
+@Entity
+@Table(name = "secureTokens")
+public class SecureToken {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(unique = true)
+	private String token;
+
+	@CreationTimestamp
+	@Column(updatable = false)
+	private Timestamp timeStamp;
+
+	@Column(updatable = false)
+	@Basic(optional = false)
+	private LocalDateTime expireAt;
+
+	@ManyToOne
+	@JoinColumn(name = "customer_id", referencedColumnName = "id")
+	private UserEntity user;
+
+	@Transient
+	private boolean isExpired;
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the token
+	 */
+	public String getToken() {
+		return token;
+	}
+
+	/**
+	 * @param token the token to set
+	 */
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+	/**
+	 * @return the timeStamp
+	 */
+	public Timestamp getTimeStamp() {
+		return timeStamp;
+	}
+
+	/**
+	 * @param timeStamp the timeStamp to set
+	 */
+	public void setTimeStamp(Timestamp timeStamp) {
+		this.timeStamp = timeStamp;
+	}
+
+	/**
+	 * @return the expireAt
+	 */
+	public LocalDateTime getExpireAt() {
+		return expireAt;
+	}
+
+	/**
+	 * @param expireAt the expireAt to set
+	 */
+	public void setExpireAt(LocalDateTime expireAt) {
+		this.expireAt = expireAt;
+	}
+
+	/**
+	 * @return the user
+	 */
+	public UserEntity getUser() {
+		return user;
+	}
+
+	/**
+	 * @param user the user to set
+	 */
+	public void setUser(UserEntity user) {
+		this.user = user;
+	}
+
+	/**
+	 * @return the isExpired
+	 */
+	public boolean isExpired() {
+		return getExpireAt().isBefore(LocalDateTime.now()); // this is generic implementation, you can always make it
+															// timezone specific
+	}
+
+	/**
+	 * @param isExpired the isExpired to set
+	 */
+	public void setExpired(boolean isExpired) {
+		this.isExpired = isExpired;
+	}
+
+	@Override
+	public String toString() {
+		return "SecureToken [id=" + id + ", token=" + token + ", timeStamp=" + timeStamp + ", expireAt=" + expireAt
+				+ ", user=" + user + ", isExpired=" + isExpired + "]";
+	}
+
+}
+```
+# Create One to Many RelationShip to the User
+# Update UserEntity
+```java
+package com.SpringSecurityApp.entity;
+
+import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.SpringSecurityApp.security.jpa.SecureToken;
+
+@Entity
+@Table(name = "user")
+public class UserEntity {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String firstName;
+	private String lastName;
+	@Column(unique = true)
+	private String email;
+	private String password;
+	private boolean accountVerified;
+
+	@OneToMany(mappedBy = "user")
+	private Set<SecureToken> tokens;
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @return the firstName
+	 */
+	public String getFirstName() {
+		return firstName;
+	}
+
+	/**
+	 * @param firstName the firstName to set
+	 */
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	/**
+	 * @return the lastName
+	 */
+	public String getLastName() {
+		return lastName;
+	}
+
+	/**
+	 * @param lastName the lastName to set
+	 */
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
+	}
+
+	/**
+	 * @param email the email to set
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	/**
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * @return the accountVarified
+	 */
+	public boolean isAccountVerified() {
+		return accountVerified;
+	}
+
+	/**
+	 * @param accountVarified the accountVarified to set
+	 */
+	public void setAccountVerified(boolean accountVerified) {
+		this.accountVerified = accountVerified;
+	}
+
+	/**
+	 * @return the tokens
+	 */
+	public Set<SecureToken> getTokens() {
+		return tokens;
+	}
+
+	/**
+	 * @param tokens the tokens to set
+	 */
+	public void setTokens(Set<SecureToken> tokens) {
+		this.tokens = tokens;
+	}
+
+}
+
+```
+# Update DefaultUserService
+
+```java
+	@Override
+	public void sendRegistrationConfirmationEmail(UserEntity user) {
+}
+```
+1. Generate A Token
+2. Save token
+3. Send out email to the Customer
+# For saving and removing toke Create SecureTokenRepository
+# Create Folder on repository/SecureTokenRepository
+```java
+package com.SpringSecurityApp.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.SpringSecurityApp.security.jpa.SecureToken;
+
+@Repository
+public interface SecureTokenRepository extends JpaRepository<SecureToken, Long> {
+	
+	SecureToken findByToken(final String token);
+	Long removeByToken(String token);
+}
+
+```
+After Succesfull Registration (verification of email) remove the token from the database
+# Create DefaultSecureTokenService
+# Create token based on certain Algorithm
+```java
+    @Override
+    public SecureToken createSecureToken(){
+        String tokenValue = new String(Base64.encodeBase64URLSafe(DEFAULT_TOKEN_GENERATOR.generateKey()), US_ASCII); // this is a sample, you can adapt as per your security need
+        SecureToken secureToken = new SecureToken();
+        secureToken.setToken(tokenValue);
+        secureToken.setExpireAt(LocalDateTime.now().plusSeconds(getTokenValidityInSeconds()));
+        this.saveSecureToken(secureToken);
+        return secureToken;
+    }
+@Override
+public void saveSecureToken(SecureToken token) {
+        secureTokenRepository.save(token);
+        }
+
+@Override
+public SecureToken findByToken(String token) {
+        return secureTokenRepository.findByToken(token);
+        }
+
+@Override
+public void removeToken(SecureToken token) {
+        secureTokenRepository.delete(token);
+        }
+
+@Override
+public void removeTokenByToken(String token) {
+        secureTokenRepository.removeByToken(token);
+        }
+
+```
+```java
+package com.SpringSecurityApp.service;
+
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.stereotype.Service;
+
+import com.SpringSecurityApp.repository.SecureTokenRepository;
+import com.SpringSecurityApp.security.jpa.SecureToken;
+
+@Service
+public class DefaultSecureTokenService implements SecureTokenService {
+
+    private static final BytesKeyGenerator DEFAULT_TOKEN_GENERATOR = KeyGenerators.secureRandom(15);
+    private static final Charset US_ASCII = Charset.forName("US-ASCII");
+
+    @Value("${jdj.secure.token.validity}")
+    private int tokenValidityInSeconds;
+
+    @Autowired
+    SecureTokenRepository secureTokenRepository;
+
+    @Override
+    public SecureToken createSecureToken(){
+        String tokenValue = new String(Base64.encodeBase64URLSafe(DEFAULT_TOKEN_GENERATOR.generateKey()), US_ASCII); // this is a sample, you can adapt as per your security need
+        SecureToken secureToken = new SecureToken();
+        secureToken.setToken(tokenValue);
+        secureToken.setExpireAt(LocalDateTime.now().plusSeconds(getTokenValidityInSeconds()));
+        this.saveSecureToken(secureToken);
+        return secureToken;
+    }
+
+    @Override
+    public void saveSecureToken(SecureToken token) {
+        secureTokenRepository.save(token);
+    }
+
+    @Override
+    public SecureToken findByToken(String token) {
+        return secureTokenRepository.findByToken(token);
+    }
+
+    @Override@Override
+	public void sendRegistrationConfirmationEmail(UserEntity user) {
+		SecureToken secureToken = secureTokenService.createSecureToken();
+		secureToken.setUser(user);
+		secureTokenRepository.save(secureToken);
+		AccountVerificationEmailContext emailContext = new AccountVerificationEmailContext();
+		emailContext.init(user);
+		emailContext.setToken(secureToken.getToken());
+		emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
+		try {
+			emailService.sendMail(emailContext);
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+
+	}
+    public void removeToken(SecureToken token) {
+        secureTokenRepository.delete(token);
+    }
+
+    @Override
+    public void removeTokenByToken(String token) {
+        secureTokenRepository.removeByToken(token);
+    }
+
+    public int getTokenValidityInSeconds() {
+        return tokenValidityInSeconds;
+    }
+}
+```
+# Now Update DefaultUserService
+```java
+@Override
+	public void sendRegistrationConfirmationEmail(UserEntity user) {
+		SecureToken secureToken = secureTokenService.createSecureToken();
+		secureToken.setUser(user);
+		secureTokenRepository.save(secureToken); // created and save token
+		AccountVerificationEmailContext emailContext = new AccountVerificationEmailContext();
+		emailContext.init(user);
+		emailContext.setToken(secureToken.getToken());
+		emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
+		try {
+			emailService.sendMail(emailContext);
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+
+	}
+```
