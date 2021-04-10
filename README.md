@@ -2227,6 +2227,7 @@ public void removeTokenByToken(String token) {
         }
 
 ```
+# Complete code for DefaultSecureTokenService
 ```java
 package com.SpringSecurityApp.service;
 
@@ -2311,6 +2312,983 @@ public class DefaultSecureTokenService implements SecureTokenService {
 		SecureToken secureToken = secureTokenService.createSecureToken();
 		secureToken.setUser(user);
 		secureTokenRepository.save(secureToken); // created and save token
+		// part 2 for send email and veriry
+        AccountVerificationEmailContext emailContext = new AccountVerificationEmailContext();
+		emailContext.init(user);
+		emailContext.setToken(secureToken.getToken());
+		emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
+		try {
+			emailService.sendMail(emailContext);
+		} catch (MessagingException e) {
+			e.printStackTrace();
+		}
+
+	}
+```
+# Add Dependency to pom.xml
+```xml
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+```
+# For Sending Mail Create DefaultMailService
+```java
+package com.SpringSecurityApp.service.impl;
+
+import java.nio.charset.StandardCharsets;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+
+import com.SpringSecurityApp.context.AbstractEmailContext;
+import com.SpringSecurityApp.service.EmailService;
+
+@Service
+public class DefaultEmailService implements EmailService {
+
+	@Autowired
+	private JavaMailSender emailSender;
+
+	@Autowired
+	private SpringTemplateEngine templateEngine;
+
+    @Override
+    public void sendMail(AbstractEmailContext email) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message,
+                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                StandardCharsets.UTF_8.name());
+        Context context = new Context();
+        context.setVariables(email.getContext());
+        String emailContent = templateEngine.process(email.getTemplateLocation(), context);
+
+        mimeMessageHelper.setTo(email.getTo());
+        mimeMessageHelper.setSubject(email.getSubject());
+        mimeMessageHelper.setFrom(email.getFrom());
+        mimeMessageHelper.setText(emailContent, true);
+        emailSender.send(message);
+    }
+
+}
+
+```
+# Create context/AbstractEmailContext.java
+```java
+package com.SpringSecurityApp.context;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public abstract class AbstractEmailContext {
+	private String from;
+	private String to;
+	private String subject;
+	private String email;
+	private String attachment;
+	private String fromDisplayName;
+	private String emailLanguage;
+	private String displayName;
+	private String templateLocation;
+	private Map<String, Object> context;
+
+	public AbstractEmailContext() {
+		this.context = new HashMap<>();
+	}
+
+	public <T> void init(T context) {
+		// we can do any common configuration setup here
+		// like setting up some base URL and context
+	}
+
+	/**
+	 * @return the from
+	 */
+	public String getFrom() {
+		return from;
+	}
+
+	/**
+	 * @param from the from to set
+	 */
+	public void setFrom(String from) {
+		this.from = from;
+	}
+
+	/**
+	 * @return the to
+	 */
+	public String getTo() {
+		return to;
+	}
+
+	/**
+	 * @param to the to to set
+	 */
+	public void setTo(String to) {
+		this.to = to;
+	}
+
+	/**
+	 * @return the subject
+	 */
+	public String getSubject() {
+		return subject;
+	}
+
+	/**
+	 * @param subject the subject to set
+	 */
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	/**
+	 * @return the email
+	 */
+	public String getEmail() {
+		return email;
+	}
+
+	/**
+	 * @param email the email to set
+	 */
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	/**
+	 * @return the attachment
+	 */
+	public String getAttachment() {
+		return attachment;
+	}
+
+	/**
+	 * @param attachment the attachment to set
+	 */
+	public void setAttachment(String attachment) {
+		this.attachment = attachment;
+	}
+
+	/**
+	 * @return the fromDisplayName
+	 */
+	public String getFromDisplayName() {
+		return fromDisplayName;
+	}
+
+	/**
+	 * @param fromDisplayName the fromDisplayName to set
+	 */
+	public void setFromDisplayName(String fromDisplayName) {
+		this.fromDisplayName = fromDisplayName;
+	}
+
+	/**
+	 * @return the emailLanguage
+	 */
+	public String getEmailLanguage() {
+		return emailLanguage;
+	}
+
+	/**
+	 * @param emailLanguage the emailLanguage to set
+	 */
+	public void setEmailLanguage(String emailLanguage) {
+		this.emailLanguage = emailLanguage;
+	}
+
+	/**
+	 * @return the displayName
+	 */
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	/**
+	 * @param displayName the displayName to set
+	 */
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	/**
+	 * @return the templateLocation
+	 */
+	public String getTemplateLocation() {
+		return templateLocation;
+	}
+
+	/**
+	 * @param templateLocation the templateLocation to set
+	 */
+	public void setTemplateLocation(String templateLocation) {
+		this.templateLocation = templateLocation;
+	}
+
+	/**
+	 * @return the context
+	 */
+	public Map<String, Object> getContext() {
+		return context;
+	}
+
+	/**
+	 * @param context the context to set
+	 */
+	public void setContext(Map<String, Object> context) {
+		this.context = context;
+	}
+
+	public Object put(String key, Object value) {
+		return key == null ? null : this.context.put(key.intern(), value);
+	}
+}
+
+```
+# create emails/email-verification.html
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:v="urn:schemas-microsoft-com:vml"
+	xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<!-- utf-8 works for most cases -->
+<meta name="viewport" content="width=device-width">
+<!-- Forcing initial-scale shouldn't be necessary -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Use the latest (edge) version of IE rendering engine -->
+<meta name="x-apple-disable-message-reformatting">
+<!-- Disable auto-scale in iOS 10 Mail entirely -->
+<title></title>
+<!-- The title tag shows in email notifications, like Android 4.4. -->
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700"
+	rel="stylesheet">
+
+<!-- CSS Reset : BEGIN -->
+<style>
+
+/* What it does: Remove spaces around the email design added by some email clients. */
+/* Beware: It can remove the padding / margin and add a background color to the compose a reply window. */
+html, body {
+	margin: 0 auto !important;
+	padding: 0 !important;
+	height: 100% !important;
+	width: 100% !important;
+	background: #f1f1f1;
+}
+
+/* What it does: Stops email clients resizing small text. */
+* {
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+
+/* What it does: Centers email on Android 4.4 */
+div[style*="margin: 16px 0"] {
+	margin: 0 !important;
+}
+
+/* What it does: Stops Outlook from adding extra spacing to tables. */
+table, td {
+	mso-table-lspace: 0pt !important;
+	mso-table-rspace: 0pt !important;
+}
+
+/* What it does: Fixes webkit padding issue. */
+table {
+	border-spacing: 0 !important;
+	border-collapse: collapse !important;
+	table-layout: fixed !important;
+	margin: 0 auto !important;
+}
+
+/* What it does: Uses a better rendering method when resizing images in IE. */
+img {
+	-ms-interpolation-mode: bicubic;
+}
+
+/* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS. Styles for underlined links should be inline. */
+a {
+	text-decoration: none;
+}
+
+/* What it does: A work-around for email clients meddling in triggered links. */
+*[x-apple-data-detectors], /* iOS */ .unstyle-auto-detected-links *,
+	.aBn {
+	border-bottom: 0 !important;
+	cursor: default !important;
+	color: inherit !important;
+	text-decoration: none !important;
+	font-size: inherit !important;
+	font-family: inherit !important;
+	font-weight: inherit !important;
+	line-height: inherit !important;
+}
+
+/* What it does: Prevents Gmail from displaying a download button on large, non-linked images. */
+.a6S {
+	display: none !important;
+	opacity: 0.01 !important;
+}
+
+/* What it does: Prevents Gmail from changing the text color in conversation threads. */
+.im {
+	color: inherit !important;
+}
+
+/* If the above doesn't work, add a .g-img class to any image in question. */
+img.g-img+div {
+	display: none !important;
+}
+
+/* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
+/* Create one of these media queries for each additional viewport size you'd like to fix */
+
+/* iPhone 4, 4S, 5, 5S, 5C, and 5SE */
+@media only screen and (min-device-width: 320px) and (max-device-width:
+	374px) {
+	u ~ div .email-container {
+		min-width: 320px !important;
+	}
+}
+/* iPhone 6, 6S, 7, 8, and X */
+@media only screen and (min-device-width: 375px) and (max-device-width:
+	413px) {
+	u ~ div .email-container {
+		min-width: 375px !important;
+	}
+}
+/* iPhone 6+, 7+, and 8+ */
+@media only screen and (min-device-width: 414px) {
+	u ~ div .email-container {
+		min-width: 414px !important;
+	}
+}
+</style>
+
+<!-- CSS Reset : END -->
+
+<!-- Progressive Enhancements : BEGIN -->
+<style>
+.primary {
+	background: #30e3ca;
+}
+
+.bg_white {
+	background: #ffffff;
+}
+
+.bg_light {
+	background: #fafafa;
+}
+
+.bg_black {
+	background: #000000;
+}
+
+.bg_dark {
+	background: rgba(0, 0, 0, .8);
+}
+
+.email-section {
+	padding: 2.5em;
+}
+
+/*BUTTON*/
+.btn {
+	padding: 10px 15px;
+	display: inline-block;
+}
+
+.btn.btn-primary {
+	border-radius: 5px;
+	background: #30e3ca;
+	color: #ffffff;
+}
+
+.btn.btn-white {
+	border-radius: 5px;
+	background: #ffffff;
+	color: #000000;
+}
+
+.btn.btn-white-outline {
+	border-radius: 5px;
+	background: transparent;
+	border: 1px solid #fff;
+	color: #fff;
+}
+
+.btn.btn-black-outline {
+	border-radius: 0px;
+	background: transparent;
+	border: 2px solid #000;
+	color: #000;
+	font-weight: 700;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Lato', sans-serif;
+	color: #000000;
+	margin-top: 0;
+	font-weight: 400;
+}
+
+body {
+	font-family: 'Lato', sans-serif;
+	font-weight: 400;
+	font-size: 15px;
+	line-height: 1.8;
+	color: rgba(0, 0, 0, .4);
+}
+
+a {
+	color: #30e3ca;
+}
+
+table {
+	
+}
+/*LOGO*/
+.logo h1 {
+	margin: 0;
+}
+
+.logo h1 a {
+	color: #30e3ca;
+	font-size: 24px;
+	font-weight: 700;
+	font-family: 'Lato', sans-serif;
+}
+
+/*HERO*/
+.hero {
+	position: relative;
+	z-index: 0;
+}
+
+.hero .text {
+	color: rgba(0, 0, 0, .3);
+}
+
+.hero .text h2 {
+	color: #000;
+	font-size: 40px;
+	margin-bottom: 0;
+	font-weight: 400;
+	line-height: 1.4;
+}
+
+.hero .text h3 {
+	font-size: 24px;
+	font-weight: 300;
+}
+
+.hero .text h2 span {
+	font-weight: 600;
+	color: #30e3ca;
+}
+
+/*HEADING SECTION*/
+.heading-section {
+	
+}
+
+.heading-section h2 {
+	color: #000000;
+	font-size: 28px;
+	margin-top: 0;
+	line-height: 1.4;
+	font-weight: 400;
+}
+
+.heading-section .subheading {
+	margin-bottom: 20px !important;
+	display: inline-block;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	color: rgba(0, 0, 0, .4);
+	position: relative;
+}
+
+.heading-section .subheading::after {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -10px;
+	content: '';
+	width: 100%;
+	height: 2px;
+	background: #30e3ca;
+	margin: 0 auto;
+}
+
+.heading-section-white {
+	color: rgba(255, 255, 255, .8);
+}
+
+/* .heading-section-white h2 {
+	font-family: 
+	line-height:1;
+	padding-bottom: 0;
+}
+ */
+.heading-section-white h2 {
+	color: #ffffff;
+}
+
+.heading-section-white .subheading {
+	margin-bottom: 0;
+	display: inline-block;
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	color: rgba(255, 255, 255, .4);
+}
+
+ul.social {
+	padding: 0;
+}
+
+ul.social li {
+	display: inline-block;
+	margin-right: 10px;
+}
+
+/*FOOTER*/
+.footer {
+	border-top: 1px solid rgba(0, 0, 0, .05);
+	color: rgba(0, 0, 0, .5);
+}
+
+.footer .heading {
+	color: #000;
+	font-size: 20px;
+}
+
+.footer ul {
+	margin: 0;
+	padding: 0;
+}
+
+.footer ul li {
+	list-style: none;
+	margin-bottom: 10px;
+}
+
+.footer ul li a {
+	color: rgba(0, 0, 0, 1);
+}
+
+@media screen and (max-width: 500px) {
+}
+</style>
+
+
+</head>
+
+<body width="100%"
+	style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly; background-color: #f1f1f1;">
+	<center style="width: 100%; background-color: #f1f1f1;">
+		<div
+			style="display: none; font-size: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
+			&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+		</div>
+		<div style="max-width: 600px; margin: 0 auto;" class="email-container">
+			<!-- BEGIN BODY -->
+			<table align="center" role="presentation" cellspacing="0"
+				cellpadding="0" border="0" width="100%" style="margin: auto;">
+				<tr>
+					<td valign="top" class="bg_white"
+						style="padding: 1em 2.5em 0 2.5em;">
+						<table role="presentation" border="0" cellpadding="0"
+							cellspacing="0" width="100%">
+							<tr>
+								<td class="logo" style="text-align: center;">
+									<h1>Welcome</h1>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<!-- end tr -->
+				<tr>
+					<td valign="middle" class="hero bg_white"
+						style="padding: 2em 0 4em 0;">
+						<table>
+							<tr>
+								<td>
+									<div class="text" style="padding: 0 2.5em; text-align: center;">
+										<h2>Finish creating your account.</h2>
+										<h3>
+											Hi
+											<p th:text="${firstName}">
+										</h3>
+										<h3>We're excited to have you get started. First, you
+											need to confirm your account. Just press the button below.</h3>
+										<p>
+											<a th:href="${verificationURL}" class="btn btn-primary">Validate
+												Account</a>
+										</p>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="text" style="padding: 0 2.5em; text-align: center;">
+										<h3>if you experience any issues with the button above,
+											copy and paste the URL below into your web browser.</h3>
+										<p th:text="${verificationURL}"></p>
+									</div>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<!-- end tr -->
+				<!-- 1 Column Text + Button : END -->
+			</table>
+			<table align="center" role="presentation" cellspacing="0"
+				cellpadding="0" border="0" width="100%" style="margin: auto;">
+				<tr>
+					<td valign="middle" class="bg_light footer email-section">
+						<table>
+							<tr>
+								<td valign="top" width="33.333%" style="padding-top: 20px;">
+									<table role="presentation" cellspacing="0" cellpadding="0"
+										border="0" width="100%">
+										<tr>
+											<td style="text-align: left; padding-right: 10px;">
+												<h3 class="heading">About</h3>
+												<p>Welcome to Java Development Journal Blog. We publish
+													articles on Spring, Spring Boot and Spring Security.</p>
+											</td>
+										</tr>
+									</table>
+								</td>
+								<td valign="top" width="33.333%" style="padding-top: 20px;">
+									<table role="presentation" cellspacing="0" cellpadding="0"
+										border="0" width="100%">
+										<tr>
+											<td
+												style="text-align: left; padding-left: 5px; padding-right: 5px;">
+												<h3 class="heading">Contact Info</h3>
+												<ul>
+													<li><span class="text">Java Development Journal</span></li>
+												</ul>
+											</td>
+										</tr>
+									</table>
+								</td>
+								<td valign="top" width="33.333%" style="padding-top: 20px;">
+									<table role="presentation" cellspacing="0" cellpadding="0"
+										border="0" width="100%">
+										<tr>
+											<td style="text-align: left; padding-left: 10px;">
+												<h3 class="heading">Useful Links</h3>
+												<ul>
+													<li><a href="#">Home</a></li>
+													<li><a href="#">About</a></li>
+												</ul>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<!-- end: tr -->
+			</table>
+
+		</div>
+	</center>
+</body>
+</html>
+```
+#Create context/AccountVerificationEmailContext.java
+
+```java
+package com.SpringSecurityApp.context;
+
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.SpringSecurityApp.entity.UserEntity;
+
+public class AccountVerificationEmailContext extends AbstractEmailContext {
+
+	private String token;
+
+	@Override
+	public <T> void init(T context) {
+		// we can do any common configuration setup here
+		// like setting up some base URL and context
+		UserEntity customer = (UserEntity) context; // we pass the customer informati
+		put("firstName", customer.getFirstName());
+		setTemplateLocation("emails/email-verification");
+		setSubject("Complete your registration");
+		//setFrom("mainulhasan3787@gmail.com");
+		setFrom("testtune4@gmail.com");
+		setTo(customer.getEmail());
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+		put("token", token);
+	}
+
+	public void buildVerificationUrl(final String baseURL, final String token) {
+		final String url = UriComponentsBuilder.fromHttpUrl(baseURL).path("/register/verify").queryParam("token", token)
+				.toUriString();
+		put("verificationURL", url);
+	}
+
+}
+```
+# Updatate RegistrationController
+```java
+
+	@GetMapping("/verify")
+	public String verifyCustomer(@RequestParam(required = false) String token, final Model model,
+			RedirectAttributes redirAttr) {
+		if (StringUtils.isEmpty(token)) {
+			redirAttr.addFlashAttribute("tokenError", messageSource
+					.getMessage("user.registration.verification.missing.token", null, LocaleContextHolder.getLocale()));
+			return REDIRECT_LOGIN;
+		}
+		try {
+			userService.verifyUser(token);
+		} catch (InvalidTokenException e) {
+			redirAttr.addFlashAttribute("tokenError", messageSource
+					.getMessage("user.registration.verification.invalid.token", null, LocaleContextHolder.getLocale()));
+			return REDIRECT_LOGIN;
+		}
+
+		redirAttr.addFlashAttribute("verifiedAccountMsg", messageSource
+				.getMessage("user.registration.verification.success", null, LocaleContextHolder.getLocale()));
+		return REDIRECT_LOGIN;
+	}
+```
+# Complete Code for RegistrationController
+```java
+package com.SpringSecurityApp.controller.user;
+
+import javax.validation.Valid;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.SpringSecurityApp.core.exception.InvalidTokenException;
+import com.SpringSecurityApp.core.exception.UserAlreadyExistException;
+import com.SpringSecurityApp.data.user.UserData;
+import com.SpringSecurityApp.service.UserService;
+
+
+@Controller
+@RequestMapping("/register")
+public class RegistrationController {
+
+	private static final String REDIRECT_LOGIN = "redirect:/login";
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private MessageSource messageSource;
+
+	@GetMapping
+	public String register(final Model model) {
+		model.addAttribute("userData", new UserData());
+		return "account/register";
+	}
+
+	@PostMapping
+	public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
+			final Model model) {
+		if (bindingResult.hasErrors()) {
+			model.addAttribute("registrationForm", userData);
+			return "account/register";
+		}
+		try {
+			userService.register(userData);
+		} catch (UserAlreadyExistException e) {
+			bindingResult.rejectValue("email", "userData.email", "An account already exists for this email.");
+			model.addAttribute("registrationForm", userData);
+			return "account/register";
+		}
+		model.addAttribute("registrationMsg", messageSource.getMessage("user.registration.verification.email.msg", null,
+				LocaleContextHolder.getLocale()));
+		return "account/register";
+	}
+
+	@GetMapping("/verify")
+	public String verifyCustomer(@RequestParam(required = false) String token, final Model model,
+			RedirectAttributes redirAttr) {
+		if (StringUtils.isEmpty(token)) {
+			redirAttr.addFlashAttribute("tokenError", messageSource
+					.getMessage("user.registration.verification.missing.token", null, LocaleContextHolder.getLocale()));
+			return REDIRECT_LOGIN;
+		}
+		try {
+			userService.verifyUser(token);
+		} catch (InvalidTokenException e) {
+			redirAttr.addFlashAttribute("tokenError", messageSource
+					.getMessage("user.registration.verification.invalid.token", null, LocaleContextHolder.getLocale()));
+			return REDIRECT_LOGIN;
+		}
+
+		redirAttr.addFlashAttribute("verifiedAccountMsg", messageSource
+				.getMessage("user.registration.verification.success", null, LocaleContextHolder.getLocale()));
+		return REDIRECT_LOGIN;
+	}
+
+}
+```
+# Add Method in DefaultUserService method name verifyUser
+```java
+@Override
+	public boolean verifyUser(String token) throws InvalidTokenException {
+		SecureToken secureToken = secureTokenService.findByToken(token);
+		if (Objects.isNull(secureToken) || !StringUtils.equals(token, secureToken.getToken())
+				|| secureToken.isExpired()) {
+			throw new InvalidTokenException("Token is not valid");
+		}
+		UserEntity user = userRepository.getOne(secureToken.getUser().getId());
+		if (Objects.isNull(user)) {
+			return false;
+		}
+		user.setAccountVerified(true);
+		userRepository.save(user); // let’s same user details
+
+		// we don’t need invalid password now
+		secureTokenService.removeToken(secureToken);
+		return true;
+	}
+```
+# Update Application.properties
+```properties
+
+#disabling cache for the development purpose
+spring.template.cache=false
+spring.thymeleaf.cache=false
+
+#secure token configuration
+# 60 * 60 * 8 // setting as 8 hours,
+
+jdj.secure.token.validity = 28800
+site.base.url.http=http://localhost:8080
+site.base.url.https=http://localhost:8080
+
+
+
+########## SMTP configuration to send out emails ##########
+####### Make sure to use the correct SMTP configurations #######
+spring.mail.host=smtp.gmail.com
+spring.mail.username= youremail
+spring.mail.password= emailpassword
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.socketFactory.port=465
+spring.mail.properties.mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+spring.mail.properties.mail.smtp.socketFactory.fallback=false
+mail.smtp.starttls.enable=true
+
+spring.jpa.hibernate.ddl-auto = update
+#spring.jpa.hibernate.ddl-auto= create-drop
+
+```
+# DefaultUserService
+```java
+package com.SpringSecurityApp.service.impl;
+
+import java.util.Objects;
+
+import javax.mail.MessagingException;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.SpringSecurityApp.context.AccountVerificationEmailContext;
+import com.SpringSecurityApp.core.exception.InvalidTokenException;
+import com.SpringSecurityApp.core.exception.UnkownIdentifierException;
+import com.SpringSecurityApp.core.exception.UserAlreadyExistException;
+import com.SpringSecurityApp.data.user.UserData;
+import com.SpringSecurityApp.entity.UserEntity;
+import com.SpringSecurityApp.repository.SecureTokenRepository;
+import com.SpringSecurityApp.repository.UserRepository;
+import com.SpringSecurityApp.security.jpa.SecureToken;
+import com.SpringSecurityApp.service.EmailService;
+import com.SpringSecurityApp.service.SecureTokenService;
+import com.SpringSecurityApp.service.UserService;
+
+@Service("userService")
+
+public class DefaultUserService implements UserService {
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private EmailService emailService;
+
+	@Autowired
+	private SecureTokenService secureTokenService;
+
+	@Autowired
+	SecureTokenRepository secureTokenRepository;
+
+	@Value("${site.base.url.https}")
+	private String baseURL;
+
+	@Override
+	public void register(UserData user) throws UserAlreadyExistException {
+		if (checkIfUserExist(user.getEmail())) {
+			throw new UserAlreadyExistException("User already exists for this email");
+		}
+		UserEntity userEntity = new UserEntity();
+		BeanUtils.copyProperties(user, userEntity);
+		encodePassword(user, userEntity);
+		userRepository.save(userEntity);
+		sendRegistrationConfirmationEmail(userEntity);
+
+	}
+
+	@Override
+	public void sendRegistrationConfirmationEmail(UserEntity user) {
+		SecureToken secureToken = secureTokenService.createSecureToken();
+		secureToken.setUser(user);
+		secureTokenRepository.save(secureToken);
 		AccountVerificationEmailContext emailContext = new AccountVerificationEmailContext();
 		emailContext.init(user);
 		emailContext.setToken(secureToken.getToken());
@@ -2322,4 +3300,44 @@ public class DefaultSecureTokenService implements SecureTokenService {
 		}
 
 	}
+
+	private void encodePassword(UserData source, UserEntity target) {
+		target.setPassword(passwordEncoder.encode(source.getPassword()));
+	}
+
+	@Override
+	public boolean checkIfUserExist(String email) {
+		return userRepository.findByEmail(email) != null ? true : false;
+	}
+
+	@Override
+	public boolean verifyUser(String token) throws InvalidTokenException {
+		SecureToken secureToken = secureTokenService.findByToken(token);
+		if (Objects.isNull(secureToken) || !StringUtils.equals(token, secureToken.getToken())
+				|| secureToken.isExpired()) {
+			throw new InvalidTokenException("Token is not valid");
+		}
+		UserEntity user = userRepository.getOne(secureToken.getUser().getId());
+		if (Objects.isNull(user)) {
+			return false;
+		}
+		user.setAccountVerified(true);
+		userRepository.save(user); // let’s same user details
+
+		// we don’t need invalid password now
+		secureTokenService.removeToken(secureToken);
+		return true;
+	}
+
+	@Override
+	public UserEntity getUserById(String id) throws UnkownIdentifierException {
+		UserEntity user = userRepository.findByEmail(id);
+		if (user == null || BooleanUtils.isFalse(user.isAccountVerified())) {
+			// we will ignore in case account is not verified or account does not exists
+			throw new UnkownIdentifierException("unable to find account or account is not active");
+		}
+		return user;
+	}
+
+}
 ```
