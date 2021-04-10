@@ -31,19 +31,6 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		/*
-		 * http.authorizeRequests().antMatchers("/login",
-		 * "/register").permitAll().antMatchers("/account/**") .hasAuthority("USER") //
-		 * rememberMe configuration
-		 * .and().rememberMe().tokenRepository(persistentTokenRepository())
-		 * 
-		 * // login configuration
-		 * .and().formLogin().loginPage("/login").defaultSuccessUrl("/account/home")
-		 * .failureUrl("/login?error=true")
-		 * 
-		 * // logout configuration
-		 * .and().logout().deleteCookies("dummyCookie").logoutSuccessUrl("/login");
-		 */
         http.authorizeRequests()
         .antMatchers("/login", "/register","/home")
         .permitAll()
