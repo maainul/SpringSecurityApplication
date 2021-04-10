@@ -320,13 +320,19 @@ these url.USER,Customer is Role
 ```java
     @Override
 protected void configure(HttpSecurity http)throws Exception{
-        http
-        .authorizeRequests()
-        .antMatchers("/login","/register").permitAll()
-        .anyRequest().authenticated()
-        .antMatchers("/account/**").hasAuthority("USER")
-        .formLogin().and()
-        .httpBasic();
+          	http
+                .httpBasic()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/login","/register").permitAll()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/account/**").hasAnyRole("USER")
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .permitAll();
+
 ```
 
 # Create AppSecurityConfig in security/AppSecurityConfig
@@ -358,13 +364,19 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
+          http
+                .httpBasic()
+                .and()
                 .authorizeRequests()
-                .antMatchers("/login", "/register").permitAll()
+                .antMatchers("/login","/register").permitAll()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/account/**").hasAnyRole("USER")
                 .anyRequest().authenticated()
-                .antMatchers("/account/**").hasAuthority("USER")
-                .formLogin().and()
-                .httpBasic();
+                .and()
+                .formLogin()
+                .permitAll();
+
     }
 }
 ```
