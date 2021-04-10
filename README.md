@@ -1739,7 +1739,6 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(authProvider());
     }
-    
 }
 ```
 ## http://localhost:8080/login
