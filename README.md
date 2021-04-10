@@ -505,6 +505,8 @@ public class RegistrationController {
 	
 
 
+
+
 </script>
 </body>
 </html>
@@ -899,30 +901,21 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
+        http.authorizeRequests()
                 .antMatchers("/login", "/register").permitAll()
                 .anyRequest().authenticated()
                 .antMatchers("/account/**").hasAuthority("USER")
                 .formLogin().and()
-                .h @Override
+                .httpBasic();
+
+        @Override
         public void configure (AuthenticationManagerBuilder auth) throws Exception {
             auth.inMemoryAuthentication()
                     .withUser("admin")
                     .password("{noop}admin12345")
                     .authorities("USER");
         }
-        ttpBasic();
     }
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("admin")
-                .password("{noop}admin12345")
-                .authorities("USER");
-    }
-}
 ```
 
 ## Type http://localhost:8080/
@@ -972,9 +965,11 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 </dependency>
 
 ```
+
 # Create register.html page
 
 # Create UserData Model
+
 ```java
 package com.SpringSecurityApp.data.user;
 
@@ -985,93 +980,95 @@ import javax.validation.constraints.NotEmpty;
 
 public class UserData implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1707314627545523673L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -1707314627545523673L;
 
-	@NotEmpty(message = "First name can not be empty")
-	private String firstName;
+    @NotEmpty(message = "First name can not be empty")
+    private String firstName;
 
-	@NotEmpty(message = "Last name can not be empty")
-	private String lastName;
+    @NotEmpty(message = "Last name can not be empty")
+    private String lastName;
 
-	@NotEmpty(message = "Email can not be empty")
-	@Email(message = "Please provide a valid email id")
-	private String email;
+    @NotEmpty(message = "Email can not be empty")
+    @Email(message = "Please provide a valid email id")
+    private String email;
 
-	@NotEmpty(message = "Password can not be empty")
-	private String password;
+    @NotEmpty(message = "Password can not be empty")
+    private String password;
 
-	public UserData() {
+    public UserData() {
 
-	}
+    }
 
-	/**
-	 * @return the firstName
-	 */
-	public String getFirstName() {
-		return firstName;
-	}
+    /**
+     * @return the firstName
+     */
+    public String getFirstName() {
+        return firstName;
+    }
 
-	/**
-	 * @param firstName the firstName to set
-	 */
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    /**
+     * @param firstName the firstName to set
+     */
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	/**
-	 * @return the lastName
-	 */
-	public String getLastName() {
-		return lastName;
-	}
+    /**
+     * @return the lastName
+     */
+    public String getLastName() {
+        return lastName;
+    }
 
-	/**
-	 * @param lastName the lastName to set
-	 */
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    /**
+     * @param lastName the lastName to set
+     */
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	/**
-	 * @return the email
-	 */
-	public String getEmail() {
-		return email;
-	}
+    /**
+     * @return the email
+     */
+    public String getEmail() {
+        return email;
+    }
 
-	/**
-	 * @param email the email to set
-	 */
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    /**
+     * @param email the email to set
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	/**
-	 * @return the password
-	 */
-	public String getPassword() {
-		return password;
-	}
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
 
-	/**
-	 * @param password the password to set
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	@Override
-	public String toString() {
-		return "UserData [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", password="
-				+ password + "]";
-	}
+    @Override
+    public String toString() {
+        return "UserData [firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + ", password="
+                + password + "]";
+    }
 }
 
 ```
+
 # Create RegisterController
+
 ```java
 package com.SpringSecurityApp.controller.user;
 
@@ -1099,37 +1096,39 @@ import com.SpringSecurityApp.service.UserService;
 @Controller
 @RequestMapping("/register")
 public class RegistrationController {
-    
-	@Autowired
-	private MessageSource messageSource;
 
-	@GetMapping
-	public String register(final Model model) {
-		model.addAttribute("userData", new UserData());
-		return "account/register";
-	}
+    @Autowired
+    private MessageSource messageSource;
 
-	@PostMapping
-	public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
-			final Model model) {
-		if (bindingResult.hasErrors()) {
-			model.addAttribute("registrationForm", userData);
-			return "account/register";
-		}
-		try {
-			userService.register(userData);
-		} catch (UserAlreadyExistException e) {
-			bindingResult.rejectValue("email", "userData.email", "An account already exists for this email.");
-			model.addAttribute("registrationForm", userData);
-			return "account/register";
-		}
-		return REDIRECT + "account/starter";
-	}
+    @GetMapping
+    public String register(final Model model) {
+        model.addAttribute("userData", new UserData());
+        return "account/register";
+    }
+
+    @PostMapping
+    public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
+                                   final Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("registrationForm", userData);
+            return "account/register";
+        }
+        try {
+            userService.register(userData);
+        } catch (UserAlreadyExistException e) {
+            bindingResult.rejectValue("email", "userData.email", "An account already exists for this email.");
+            model.addAttribute("registrationForm", userData);
+            return "account/register";
+        }
+        return REDIRECT + "account/starter";
+    }
 
 
 }
 ```
+
 # Create UserEntity
+
 ```java
 package com.SpringSecurityApp.entity;
 
@@ -1148,102 +1147,103 @@ import com.SpringSecurityApp.security.jpa.SecureToken;
 @Entity
 @Table(name = "user")
 public class UserEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	private String firstName;
-	private String lastName;
-	@Column(unique = true)
-	private String email;
-	private String password;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String firstName;
+    private String lastName;
+    @Column(unique = true)
+    private String email;
+    private String password;
 
-	/**
-	 * @return the id
-	 */
-	public Long getId() {
-		return id;
-	}
+    /**
+     * @return the id
+     */
+    public Long getId() {
+        return id;
+    }
 
-	/**
-	 * @return the firstName
-	 */
-	public String getFirstName() {
-		return firstName;
-	}
+    /**
+     * @return the firstName
+     */
+    public String getFirstName() {
+        return firstName;
+    }
 
-	/**
-	 * @param firstName the firstName to set
-	 */
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    /**
+     * @param firstName the firstName to set
+     */
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-	/**
-	 * @return the lastName
-	 */
-	public String getLastName() {
-		return lastName;
-	}
+    /**
+     * @return the lastName
+     */
+    public String getLastName() {
+        return lastName;
+    }
 
-	/**
-	 * @param lastName the lastName to set
-	 */
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    /**
+     * @param lastName the lastName to set
+     */
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-	/**
-	 * @return the email
-	 */
-	public String getEmail() {
-		return email;
-	}
+    /**
+     * @return the email
+     */
+    public String getEmail() {
+        return email;
+    }
 
-	/**
-	 * @param email the email to set
-	 */
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    /**
+     * @param email the email to set
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	/**
-	 * @return the password
-	 */
-	public String getPassword() {
-		return password;
-	}
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return password;
+    }
 
-	/**
-	 * @param password the password to set
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    /**
+     * @param password the password to set
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
 }
 
 ```
+
 # Create message.properties For Bean validation API
+
 ```java
 lang.eng=English
-lang.de= German
-registration.validation.firstName=Please provide first name
-registration.validation.lastName=Please provide last name
-registration.validation.email=Please provide a valid email
-registration.validation.password= Password can not be empty
-login.error= Username or password is incorrect. Please make sure to provide valid username or password.
+        lang.de=German
+        registration.validation.firstName=Please provide first name
+        registration.validation.lastName=Please provide last name
+        registration.validation.email=Please provide a valid email
+        registration.validation.password=Password can not be empty
+        login.error=Username or password is incorrect.Please make sure to provide valid username or password.
 
-user.registration.verification.missing.token= Token is empty. Please make sure to copy the entire URL
-user.registration.verification.invalid.token= It seems that token is expired or has been modified.Please provide a valid token.
-user.registration.verification.success= Thanks for the account verification. You can now login to your account.
-user.registration.verification.email.msg= Thanks for your registration. We have sent a verification email. Please verify your account.
-user.forgotpwd.msg= If the email address entered matches your account, you will receive an email with a link to reset your password.
-user.password.updated.msg= Your password is updated. Please login
+        user.registration.verification.missing.token=Token is empty.Please make sure to copy the entire URL
+        user.registration.verification.invalid.token=It seems that token is expired or has been modified.Please provide a valid token.
+        user.registration.verification.success=Thanks for the account verification.You can now login to your account.
+        user.registration.verification.email.msg=Thanks for your registration.We have sent a verification email.Please verify your account.
+        user.forgotpwd.msg=If the email address entered matches your account,you will receive an email with a link to reset your password.
+        user.password.updated.msg=Your password is updated.Please login
 ```
 
-
-
 # Creaate Repository UserRepository.java
+
 ```java
 package com.SpringSecurityApp.repository;
 
@@ -1255,12 +1255,14 @@ import com.SpringSecurityApp.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-	UserEntity findByEmail(String email);
+    UserEntity findByEmail(String email);
 
 }
 
 ```
+
 # Create UserService.java
+
 ```java
 package com.SpringSecurityApp.service;
 
@@ -1273,14 +1275,17 @@ import com.SpringSecurityApp.entity.UserEntity;
 
 public interface UserService {
 
-	void register(final UserData user) throws UserAlreadyExistException;
-	boolean checkIfUserExist(final String email);
+    void register(final UserData user) throws UserAlreadyExistException;
 
-	
+    boolean checkIfUserExist(final String email);
+
+
 }
 
 ```
+
 # UserService.java
+
 ```java
 package com.SpringSecurityApp.service.impl;
 
@@ -1313,38 +1318,41 @@ import com.SpringSecurityApp.service.UserService;
 
 public class DefaultUserService implements UserService {
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
-	@Value("${site.base.url.https}")
-	private String baseURL;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@Override
-	public void register(UserData user) throws UserAlreadyExistException {
-		if (checkIfUserExist(user.getEmail())) {
-			throw new UserAlreadyExistException("User already exists for this email");
-		}
-		UserEntity userEntity = new UserEntity();
-		BeanUtils.copyProperties(user, userEntity);
-		encodePassword(user,target);
-		userRepository.save(userEntity);
-	
-	}
-	private void encodePassword(UserData source, UserEntity target) {
-		target.setPassword(passwordEncoder.encode(source.getPassword()));
-	}
+    @Value("${site.base.url.https}")
+    private String baseURL;
 
-	@Override
-	public boolean checkIfUserExist(String email) {
-		return userRepository.findByEmail(email) != null ? true : false;
-	}
-	
+    @Override
+    public void register(UserData user) throws UserAlreadyExistException {
+        if (checkIfUserExist(user.getEmail())) {
+            throw new UserAlreadyExistException("User already exists for this email");
+        }
+        UserEntity userEntity = new UserEntity();
+        BeanUtils.copyProperties(user, userEntity);
+        encodePassword(user, target);
+        userRepository.save(userEntity);
+
+    }
+
+    private void encodePassword(UserData source, UserEntity target) {
+        target.setPassword(passwordEncoder.encode(source.getPassword()));
+    }
+
+    @Override
+    public boolean checkIfUserExist(String email) {
+        return userRepository.findByEmail(email) != null ? true : false;
+    }
+
 }
 ```
+
 # Update RegisterController
+
 ```java
 package com.SpringSecurityApp.controller.user;
 
@@ -1373,46 +1381,53 @@ import com.SpringSecurityApp.service.UserService;
 @RequestMapping("/register")
 public class RegistrationController {
 
-	private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private MessageSource messageSource;
+    @Autowired
+    private MessageSource messageSource;
 
-	@GetMapping
-	public String register(final Model model) {
-		model.addAttribute("userData", new UserData());
-		return "account/register";
-	}
+    @GetMapping
+    public String register(final Model model) {
+        model.addAttribute("userData", new UserData());
+        return "account/register";
+    }
 
-	@PostMapping
-	public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
-			final Model model) {
-		if (bindingResult.hasErrors()) {
-			model.addAttribute("registrationForm", userData);
-			return "account/register";
-		}
-		try {
-			userService.register(userData);
-		} catch (UserAlreadyExistException e) {
-			bindingResult.rejectValue("email", "userData.email", "An account already exists for this email.");
-			model.addAttribute("registrationForm", userData);
-			return "account/register";
-		}
-		return REDIRECT + "account/starter";
-	}
+    @PostMapping
+    public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
+                                   final Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("registrationForm", userData);
+            return "account/register";
+        }
+        try {
+            userService.register(userData);
+        } catch (UserAlreadyExistException e) {
+            bindingResult.rejectValue("email", "userData.email", "An account already exists for this email.");
+            model.addAttribute("registrationForm", userData);
+            return "account/register";
+        }
+        return REDIRECT + "account/starter";
+    }
 }
 ```
+
 # Try To Add new Registration
+
 ### http://localhost:8080/register
+
 ![registration](https://user-images.githubusercontent.com/37740006/114256523-a03a6080-99db-11eb-9b37-dbc907747eb7.png)
 
 # ------------------------------------------------------------------------------------------------
+
 # STEP -4
+
 # ------------------------------------------------------------------------------------------------
+
 In this Steps We will Learn:
+
 1. Custom login page
 2. Custom login Controller
 3. Defining the custom user details Service
@@ -1420,3 +1435,315 @@ In this Steps We will Learn:
 5. Login Demo
 
 ![loginWorkflow](https://user-images.githubusercontent.com/37740006/114256668-bf85bd80-99dc-11eb-8360-51d0b584f4e2.png)
+
+# Create Login Page (account/login.html file)
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="core/head :: head">
+    <meta charset="utf-8">
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+    <div class="login-logo">
+        <a href="#">Welcome to Spring Security Application</a>
+    </div>
+    <!-- /.login-logo -->
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Sign in to start your session</p>
+            <p th:if="${loginError}" class="error"></p>
+            <form th:action="@{/login}" method="post">
+                <div th:if="${param.error}">
+                    <div class="alert alert-danger">
+                        <span th:text="#{login.error}"/>
+                    </div>
+
+                </div>
+                <div class="input-group mb-3">
+                    <input type="email" class="form-control" name="username"
+                           placeholder="Email" autocomplete=”off”>
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" name="password" class="form-control"
+                           placeholder="Password">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input type="checkbox" id="remember" name="remember-me">
+                            <label for="remember"> Remember Me </label>
+                        </div>
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Sign
+                            In
+                        </button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+            </form>
+
+            <div class="social-auth-links text-center mb-3">
+                <p>- OR -</p>
+                <a href="#" class="btn btn-block btn-primary"> <i
+                        class="fab fa-facebook mr-2"></i> Sign in using Facebook
+                </a> <a href="#" class="btn btn-block btn-danger"> <i
+                    class="fab fa-google-plus mr-2"></i> Sign in using Google+
+            </a>
+            </div>
+            <!-- /.social-auth-links -->
+
+            <p class="mb-1">
+                <a href="#" data-toggle="modal" data-target="#forgotPasswordModel">I
+                    forgot my password</a>
+            </p>
+            <p class="mb-0">
+                <a href="register" class="text-center">Register a new
+                    membership</a>
+            </p>
+        </div>
+        <!-- /.login-card-body -->
+    </div>
+</div>
+<div th:replace="account/forgotPassword :: forgotPasswordModel"></div>
+<!-- /.login-box -->
+
+<!-- jQuery -->
+<script src="../../plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="../../dist/js/adminlte.min.js"></script>
+<script src="../../plugins/jquery/jquery.min.js"></script>
+<script type="text/javascript">
+		$(document).ready(function() {
+			$("#locale").change(function() {
+				var selectedOption = $('#locale').val();
+				if (selectedOption != '') {
+					window.location.replace('?lang=' + selectedOption);
+				}
+			});
+		});
+	
+
+</script>
+</body>
+</html>
+```
+
+# Create LoginController
+
+```java
+package com.SpringSecurityApp.controller.user;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/login")
+public class LoginController {
+
+    @GetMapping
+    public String login() {
+        return "account/login";
+    }
+}
+```
+
+# Update AppSecurityConfig.java
+
+```java
+package com.SpringSecurityApp.security;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+
+@EnableWebSecurity
+public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/login", "/register").permitAll()
+                .anyRequest().authenticated()
+                .antMatchers("/account/**").hasAuthority("USER")
+                .and()
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/account/home")
+                        .loginPage("/login")
+                        .failureUrl("/login?error=true"));
+
+    }
+
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().antMatchers("/resources/**", "/static/**");
+    }
+
+}
+```
+
+# Let's Load the User Information for validating the user is Exists or not?
+
+# Create CustomUserDetailService
+
+```java
+package com.SpringSecurityApp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import com.SpringSecurityApp.entity.UserEntity;
+import com.SpringSecurityApp.repository.UserRepository;
+
+@Service("userDetailsService")
+public class CustomUserDetailService implements UserDetailsService {
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        final UserEntity customer = userRepository.findByEmail(email);
+        if (customer == null) {
+            throw new UsernameNotFoundException(email);
+        }
+        boolean enabled = !customer.isAccountVerified();
+        UserDetails user = User.withUsername(customer.getEmail()).password(customer.getPassword()).disabled(enabled)
+                .authorities("USER").build();
+        return user;
+    }
+}
+
+```
+
+## Which Authentication provider is used to authenticate the user ? We will be using authentication provider
+
+```java
+@Bean
+public BCryptPasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+        }
+
+@Bean
+public DaoAuthenticationProvider authProvider(){
+        DaoAuthenticationProvider authProvider=new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+        }
+
+@Override
+protected void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(authProvider());
+        }
+
+```
+
+
+# Complete Code for AppSecurityConfig.java
+
+```java
+package com.SpringSecurityApp.security;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+
+@EnableWebSecurity
+public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/login", "/register").permitAll()
+                .anyRequest().authenticated()
+                .antMatchers("/account/**").hasAuthority("USER")
+                .and()
+                .formLogin(form -> form
+                        .defaultSuccessUrl("/account/home")
+                        .loginPage("/login")
+                        .failureUrl("/login?error=true"));
+
+    }
+
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().antMatchers("/resources/**", "/static/**");
+    }
+    
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authProvider(){
+        DaoAuthenticationProvider authProvider=new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(authProvider());
+    }
+    
+}
+```
+## http://localhost:8080/login
+# Done REGISTRATION AND LOGIN
+# ------------------------------------------------------------------------------------------------
+# STEP -5 ( EMAIL VERIFICATION REGISTRATION)
+# ------------------------------------------------------------------------------------------------
