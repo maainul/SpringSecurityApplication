@@ -1008,20 +1008,23 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 @EnableWebSecurity
 public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Resource
-    UserDetailsService userDetailsService;
-
-    @Autowired
-    private DataSource dataSource;
+ 
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/login", "/register").permitAll()
+           http
+                .httpBasic()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/login","/register").permitAll()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/").hasAnyRole("USER")
                 .anyRequest().authenticated()
-                .antMatchers("/account/**").hasAuthority("USER")
-                .formLogin().and()
-                .httpBasic();
+                .and()
+                .formLogin()
+                .permitAll();
+
 
         @Override
         public void configure (AuthenticationManagerBuilder auth) throws Exception {
@@ -1212,8 +1215,8 @@ import com.SpringSecurityApp.service.UserService;
 @RequestMapping("/register")
 public class RegistrationController {
 
-    @Autowired
-    private MessageSource messageSource;
+ 	private static final String REDIRECT_LOGIN = "redirect:/login";
+
 
     @GetMapping
     public String register(final Model model) {
@@ -1239,8 +1242,101 @@ public class RegistrationController {
     }
 
 
+    @PostMapping
+    public String userRegistration(final @Valid UserData userData, final BindingResult bindingResult,
+                                   final Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("registrationForm", userData);
+            return "account/register";
+        }
+        return REDIRECT_LOGIN;
+    }
+
+
 }
 ```
+# Create exceptions/UserAlreadyExistException.java
+```java
+
+package com.mainul.HomePro.springSecurity.exception;
+
+/**
+ * Exception thrown by system in case some one try to register with already
+ * exisiting email id in the system.
+ */
+
+public class UserAlreadyExistException extends Exception {
+
+	public UserAlreadyExistException() {
+		super();
+	}
+
+	public UserAlreadyExistException(String message) {
+		super(message);
+	}
+
+	public UserAlreadyExistException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+}
+
+
+```
+
+# Create exception/UnkownIdentifierException.java
+
+```java
+
+package com.mainul.HomePro.springSecurity.exception;
+
+public class UnkownIdentifierException extends Exception{
+
+    public UnkownIdentifierException() {
+        super();
+    }
+
+
+    public UnkownIdentifierException(String message) {
+        super(message);
+    }
+
+
+    public UnkownIdentifierException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
+
+```
+
+# Create exception/InvalidTokenException.java
+
+```java
+package com.mainul.HomePro.springSecurity.exception;
+
+public class InvalidTokenException extends Exception {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public InvalidTokenException() {
+		super();
+	}
+
+	public InvalidTokenException(String message) {
+		super(message);
+	}
+
+	public InvalidTokenException(String message, Throwable cause) {
+		super(message, cause);
+	}
+}
+
+```
+
 
 # Create UserEntity
 
@@ -1449,9 +1545,9 @@ public class DefaultUserService implements UserService {
         }
         UserEntity userEntity = new UserEntity();
         BeanUtils.copyProperties(user, userEntity);
-        encodePassword(user, target);
+        encodePassword(user, userEntity);
         userRepository.save(userEntity);
-
+        
     }
 
     private void encodePassword(UserData source, UserEntity target) {
